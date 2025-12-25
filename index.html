@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boeing 737 - Altitude Correction Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border: 2px solid #333;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #003087;
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background-color: #fafafa;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #999;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .input-group input[readonly] {
+            background-color: #e8e8e8;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 30px;
+            font-size: 14px;
+            margin: 0 5px;
+            cursor: pointer;
+            border: 1px solid #333;
+            background-color: #fff;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-calculate {
+            background-color: #003087;
+            color: white;
+            font-weight: bold;
+        }
+
+        .btn-calculate:hover {
+            background-color: #002060;
+        }
+
+        .results-box {
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px solid #333;
+            background-color: #ffffcc;
+            display: none;
+        }
+
+        .results-box.show {
+            display: block;
+        }
+
+        .results-box h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .correction-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #d00;
+        }
+
+        .warning-box {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #cc6600;
+            background-color: #fff3cd;
+            font-size: 12px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BOEING 737 - Altitude Correction Table</h1>
+            <p>Low Temperature Altitude Correction Calculator</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Input Parameters</div>
+            <div class="two-column">
+                <div class="input-group">
+                    <label for="airportTemp">Temperature (°C):</label>
+                    <select id="airportTemp" required>
+                        <option value="">Select temperature...</option>
+                        <option value="0">0°C</option>
+                        <option value="-10">-10°C</option>
+                        <option value="-20">-20°C</option>
+                        <option value="-30">-30°C</option>
+                        <option value="-40">-40°C</option>
+                        <option value="-50">-50°C</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="adElevation">AD Elevation (feet MSL):</label>
+                    <input type="number" id="adElevation" placeholder="e.g. 1500" step="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Altitude Corrections</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 45%;">Published Altitude (feet MSL)</th>
+                        <th style="width: 45%;">Height Above AD (feet)</th>
+                        <th style="width: 45%;">Corrected Altitude (feet MSL)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><input type="number" id="publishedAlt1" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove1" readonly></td>
+                        <td><input type="number" id="correctedAlt1" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><input type="number" id="publishedAlt2" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove2" readonly></td>
+                        <td><input type="number" id="correctedAlt2" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><input type="number" id="publishedAlt3" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove3" readonly></td>
+                        <td><input type="number" id="correctedAlt3" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><input type="number" id="publishedAlt4" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove4" readonly></td>
+                        <td><input type="number" id="correctedAlt4" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td><input type="number" id="publishedAlt5" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove5" readonly></td>
+                        <td><input type="number" id="correctedAlt5" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td><input type="number" id="publishedAlt6" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove6" readonly></td>
+                        <td><input type="number" id="correctedAlt6" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td><input type="number" id="publishedAlt7" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove7" readonly></td>
+                        <td><input type="number" id="correctedAlt7" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td><input type="number" id="publishedAlt8" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove8" readonly></td>
+                        <td><input type="number" id="correctedAlt8" readonly></td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td><input type="number" id="publishedAlt9" placeholder="Enter altitude" step="10"></td>
+                        <td><input type="number" id="heightAbove9" readonly></td>
+                        <td><input type="number" id="correctedAlt9" readonly></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="button-group">
+            <button type="button" class="btn-calculate" onclick="calculateCorrections()">Calculate Corrections</button>
+            <button type="button" onclick="resetForm()">Reset</button>
+        </div>
+
+        <div id="resultsBox" class="results-box">
+            <h3>✓ Corrections Calculated</h3>
+            <p>All corrections are shown in the table above.</p>
+        </div>
+
+        <div class="warning-box">
+            <strong>NOTE:</strong> This calculator uses data from Boeing 737 Flight Crew Operations Manual - Supplementary Procedures (Adverse Weather). 
+            Always follow your airline's standard operating procedures and current documentation.
+        </div>
+    </div>
+
+    <script>
+        // Correction table from Boeing 737 manual
+        const correctionTable = {
+            '0': {200: 20, 300: 20, 400: 30, 500: 30, 600: 40, 700: 40, 800: 50, 900: 50, 1000: 60, 1500: 90, 2000: 120, 3000: 170},
+            '-10': {200: 20, 300: 30, 400: 40, 500: 50, 600: 60, 700: 70, 800: 80, 900: 90, 1000: 100, 1500: 150, 2000: 200, 3000: 290},
+            '-20': {200: 30, 300: 50, 400: 60, 500: 70, 600: 90, 700: 100, 800: 120, 900: 130, 1000: 140, 1500: 210, 2000: 280, 3000: 420},
+            '-30': {200: 40, 300: 60, 400: 80, 500: 100, 600: 120, 700: 140, 800: 150, 900: 170, 1000: 190, 1500: 280, 2000: 380, 3000: 570},
+            '-40': {200: 50, 300: 80, 400: 100, 500: 120, 600: 150, 700: 170, 800: 190, 900: 220, 1000: 240, 1500: 360, 2000: 480, 3000: 720},
+            '-50': {200: 60, 300: 90, 400: 120, 500: 150, 600: 180, 700: 210, 800: 240, 900: 270, 1000: 300, 1500: 450, 2000: 590, 3000: 890}
+        };
+
+        const availableHeights = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 3000];
+
+        function findNearestHeight(inputHeight) {
+            let nearest = availableHeights[0];
+            let minDiff = Math.abs(inputHeight - nearest);
+
+            for (let i = 1; i < availableHeights.length; i++) {
+                let diff = Math.abs(inputHeight - availableHeights[i]);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nearest = availableHeights[i];
+                }
+            }
+            return nearest;
+        }
+
+        function getCorrection(temp, heightAbove) {
+            const tempStr = temp.toString();
+            if (!correctionTable[tempStr]) return null;
+
+            
+            let totalCorrection = 0;
+            let remainingHeight = Math.round(heightAbove);
+            
+            
+            for (let i = availableHeights.length - 1; i >= 0; i--) {
+                const segmentHeight = availableHeights[i];
+                
+                
+                while (remainingHeight >= segmentHeight) {
+                    totalCorrection += correctionTable[tempStr][segmentHeight];
+                    remainingHeight -= segmentHeight;
+                }
+            }
+
+            return {
+                correction: totalCorrection,
+                originalHeight: Math.round(heightAbove)
+            };
+        }
+
+        function calculateCorrections() {
+            const temp = document.getElementById('airportTemp').value;
+            const adElevation = parseFloat(document.getElementById('adElevation').value);
+
+            console.log('Temperature:', temp);
+            console.log('AD Elevation:', adElevation);
+
+            if (!temp || isNaN(adElevation)) {
+                alert('Please enter both temperature and AD elevation.');
+                return;
+            }
+
+            let hasValidEntry = false;
+
+            for (let i = 1; i <= 9; i++) {
+                const publishedInput = document.getElementById(`publishedAlt${i}`);
+                const heightAboveInput = document.getElementById(`heightAbove${i}`);
+                const correctedInput = document.getElementById(`correctedAlt${i}`);
+                
+                if (publishedInput.value && publishedInput.value.trim() !== '') {
+                    const published = parseFloat(publishedInput.value);
+                    const heightAbove = published - adElevation;
+
+                    console.log(`Row ${i}: Published=${published}, HeightAbove=${heightAbove}`);
+
+                    heightAboveInput.value = Math.round(heightAbove);
+
+                    if (heightAbove < 200) {
+                        correctedInput.value = Math.round(published);
+                        hasValidEntry = true;
+                        continue;
+                    }
+
+                    const result = getCorrection(temp, heightAbove);
+                    
+                    console.log(`Row ${i}: Result=`, result);
+                    
+                    if (result) {
+                        correctedInput.value = Math.round(published + result.correction);
+                        hasValidEntry = true;
+                        console.log(`Row ${i}: Corrected=${Math.round(published + result.correction)}`);
+                    } else {
+                        correctedInput.value = 'ERROR';
+                        console.log(`Row ${i}: Result is null!`);
+                    }
+                } else {
+                    heightAboveInput.value = '';
+                    correctedInput.value = '';
+                }
+            }
+
+            if (hasValidEntry) {
+                document.getElementById('resultsBox').classList.add('show');
+            } else {
+                alert('Please enter at least one published altitude.');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('airportTemp').value = '';
+            document.getElementById('adElevation').value = '';
+            
+            for (let i = 1; i <= 9; i++) {
+                document.getElementById(`publishedAlt${i}`).value = '';
+                document.getElementById(`heightAbove${i}`).value = '';
+                document.getElementById(`correctedAlt${i}`).value = '';
+            }
+            
+            document.getElementById('resultsBox').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
