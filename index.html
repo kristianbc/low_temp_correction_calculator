@@ -139,12 +139,6 @@
             color: #333;
         }
 
-        .correction-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #d00;
-        }
-
         .warning-box {
             margin-top: 15px;
             padding: 10px;
@@ -159,6 +153,18 @@
             gap: 15px;
         }
 
+        .formula-box {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #003087;
+            background-color: #e6f2ff;
+            font-size: 11px;
+        }
+
+        .formula-box strong {
+            color: #003087;
+        }
+
         @media (max-width: 600px) {
             .two-column {
                 grid-template-columns: 1fr;
@@ -169,29 +175,21 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>BOEING 737 - Altitude Correction Table</h1>
-            <p>Low Temperature Altitude Correction Calculator</p>
+            <h1>BOEING 737 - Altitude Correction Calculator</h1>
+            <p>Cold Temperature Altitude Correction - ICAO Doc 8168 Method</p>
         </div>
 
         <div class="section">
             <div class="section-title">Input Parameters</div>
             <div class="two-column">
                 <div class="input-group">
-                    <label for="airportTemp">Temperature (°C):</label>
-                    <select id="airportTemp" required>
-                        <option value="">Select temperature...</option>
-                        <option value="0">0°C</option>
-                        <option value="-10">-10°C</option>
-                        <option value="-20">-20°C</option>
-                        <option value="-30">-30°C</option>
-                        <option value="-40">-40°C</option>
-                        <option value="-50">-50°C</option>
-                    </select>
+                    <label for="airportTemp">Aerodrome Temperature (°C):</label>
+                    <input type="number" id="airportTemp" placeholder="e.g. -12" step="1">
                 </div>
 
                 <div class="input-group">
-                    <label for="adElevation">AD Elevation (feet MSL):</label>
-                    <input type="number" id="adElevation" placeholder="e.g. 1500" step="1">
+                    <label for="adElevation">Aerodrome Elevation (feet MSL):</label>
+                    <input type="number" id="adElevation" placeholder="e.g. 180" step="1">
                 </div>
             </div>
         </div>
@@ -276,75 +274,63 @@
             <p>All corrections are shown in the table above.</p>
         </div>
 
+        <div class="formula-box">
+            <strong>Formula (ICAO Doc 8168):</strong><br>
+            Correction = H × (15 - t₀) / (273 + t₀ - 0.5 × L₀ × (H + Hₐₛₛ))<br>
+            Where: H = height above aerodrome, t₀ = aerodrome temperature, L₀ = 0.00198°C/ft, Hₐₛₛ = aerodrome elevation
+        </div>
+
         <div class="warning-box">
-            <strong>NOTE:</strong> This calculator uses data from Boeing 737 Flight Crew Operations Manual - Supplementary Procedures (Adverse Weather). 
+            <strong>NOTE:</strong> This calculator uses the ICAO Doc 8168 formula for cold temperature corrections.
             Always follow your airline's standard operating procedures and current documentation.
         </div>
     </div>
 
     <script>
-        // Correction table from Boeing 737 manual
-        const correctionTable = {
-            '0': {200: 20, 300: 20, 400: 30, 500: 30, 600: 40, 700: 40, 800: 50, 900: 50, 1000: 60, 1500: 90, 2000: 120, 3000: 170},
-            '-10': {200: 20, 300: 30, 400: 40, 500: 50, 600: 60, 700: 70, 800: 80, 900: 90, 1000: 100, 1500: 150, 2000: 200, 3000: 290},
-            '-20': {200: 30, 300: 50, 400: 60, 500: 70, 600: 90, 700: 100, 800: 120, 900: 130, 1000: 140, 1500: 210, 2000: 280, 3000: 420},
-            '-30': {200: 40, 300: 60, 400: 80, 500: 100, 600: 120, 700: 140, 800: 150, 900: 170, 1000: 190, 1500: 280, 2000: 380, 3000: 570},
-            '-40': {200: 50, 300: 80, 400: 100, 500: 120, 600: 150, 700: 170, 800: 190, 900: 220, 1000: 240, 1500: 360, 2000: 480, 3000: 720},
-            '-50': {200: 60, 300: 90, 400: 120, 500: 150, 600: 180, 700: 210, 800: 240, 900: 270, 1000: 300, 1500: 450, 2000: 590, 3000: 890}
-        };
+        // ICAO Doc 8168 Temperature Lapse Rate
+        const L0 = 0.00198; // °C per foot
 
-        const availableHeights = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 3000];
+        /**
+         * Calculate cold temperature correction using ICAO Doc 8168 formula
+         * 
+         * Correction = H × (15 - t₀) / (273 + t₀ - 0.5 × L₀ × (H + Hₐₛₛ))
+         * 
+         * @param {number} H - Minimum height above the altimeter setting source (feet)
+         * @param {number} t0 - Temperature at aerodrome (°C)
+         * @param {number} Hass - Altimeter setting source elevation (aerodrome elevation in feet)
+         * @returns {number} - Correction in feet
+         */
+        function calculateColdTempCorrection(H, t0, Hass) {
+            // ICAO Doc 8168 formula
+            const numerator = H * (15 - t0);
+            const denominator = 273 + t0 - 0.5 * L0 * (H + Hass);
+            const correction = numerator / denominator;
 
-        function findNearestHeight(inputHeight) {
-            let nearest = availableHeights[0];
-            let minDiff = Math.abs(inputHeight - nearest);
+            console.log(`Formula calculation:`);
+            console.log(`  H = ${H} ft`);
+            console.log(`  t₀ = ${t0}°C`);
+            console.log(`  Hₐₛₛ = ${Hass} ft`);
+            console.log(`  Numerator = ${H} × (15 - ${t0}) = ${numerator.toFixed(2)}`);
+            console.log(`  Denominator = 273 + ${t0} - 0.5 × ${L0} × (${H} + ${Hass}) = ${denominator.toFixed(4)}`);
+            console.log(`  Correction = ${numerator.toFixed(2)} / ${denominator.toFixed(4)} = ${correction.toFixed(2)} ft`);
 
-            for (let i = 1; i < availableHeights.length; i++) {
-                let diff = Math.abs(inputHeight - availableHeights[i]);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    nearest = availableHeights[i];
-                }
-            }
-            return nearest;
-        }
-
-        function getCorrection(temp, heightAbove) {
-            const tempStr = temp.toString();
-            if (!correctionTable[tempStr]) return null;
-
-            
-            let totalCorrection = 0;
-            let remainingHeight = Math.round(heightAbove);
-            
-            
-            for (let i = availableHeights.length - 1; i >= 0; i--) {
-                const segmentHeight = availableHeights[i];
-                
-                
-                while (remainingHeight >= segmentHeight) {
-                    totalCorrection += correctionTable[tempStr][segmentHeight];
-                    remainingHeight -= segmentHeight;
-                }
-            }
-
-            return {
-                correction: totalCorrection,
-                originalHeight: Math.round(heightAbove)
-            };
+            return correction;
         }
 
         function calculateCorrections() {
-            const temp = document.getElementById('airportTemp').value;
+            const tempInput = document.getElementById('airportTemp').value;
             const adElevation = parseFloat(document.getElementById('adElevation').value);
 
-            console.log('Temperature:', temp);
-            console.log('AD Elevation:', adElevation);
+            console.log('=== Calculation Started ===');
+            console.log('Aerodrome Temperature:', tempInput);
+            console.log('Aerodrome Elevation:', adElevation);
 
-            if (!temp || isNaN(adElevation)) {
-                alert('Please enter both temperature and AD elevation.');
+            if (!tempInput || tempInput === '' || isNaN(adElevation)) {
+                alert('Please enter both temperature and aerodrome elevation.');
                 return;
             }
+
+            const t0 = parseFloat(tempInput);
 
             let hasValidEntry = false;
 
@@ -355,30 +341,26 @@
                 
                 if (publishedInput.value && publishedInput.value.trim() !== '') {
                     const published = parseFloat(publishedInput.value);
-                    const heightAbove = published - adElevation;
+                    const H = published - adElevation; // Height above aerodrome
 
-                    console.log(`Row ${i}: Published=${published}, HeightAbove=${heightAbove}`);
+                    console.log(`\nRow ${i}:`);
+                    console.log(`  Published Altitude: ${published} ft MSL`);
+                    console.log(`  Height Above AD: ${H} ft`);
 
-                    heightAboveInput.value = Math.round(heightAbove);
+                    heightAboveInput.value = Math.round(H);
 
-                    if (heightAbove < 200) {
-                        correctedInput.value = Math.round(published);
-                        hasValidEntry = true;
-                        continue;
-                    }
-
-                    const result = getCorrection(temp, heightAbove);
+                    // Calculate correction using ICAO formula
+                    const correction = calculateColdTempCorrection(H, t0, adElevation);
                     
-                    console.log(`Row ${i}: Result=`, result);
+                    // Round to nearest 10 feet for final result
+                    const correctedAlt = published + correction;
+                    const roundedCorrected = Math.round(correctedAlt / 10) * 10;
                     
-                    if (result) {
-                        correctedInput.value = Math.round(published + result.correction);
-                        hasValidEntry = true;
-                        console.log(`Row ${i}: Corrected=${Math.round(published + result.correction)}`);
-                    } else {
-                        correctedInput.value = 'ERROR';
-                        console.log(`Row ${i}: Result is null!`);
-                    }
+                    correctedInput.value = roundedCorrected;
+                    console.log(`  Raw Corrected: ${correctedAlt.toFixed(1)} ft`);
+                    console.log(`  Final Corrected (rounded to 10 ft): ${roundedCorrected} ft`);
+                    
+                    hasValidEntry = true;
                 } else {
                     heightAboveInput.value = '';
                     correctedInput.value = '';
@@ -390,6 +372,8 @@
             } else {
                 alert('Please enter at least one published altitude.');
             }
+            
+            console.log('=== Calculation Complete ===');
         }
 
         function resetForm() {
